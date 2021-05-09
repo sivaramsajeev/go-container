@@ -14,6 +14,9 @@ func main() {
 	case "run":
 		run()
 
+	case "kid": // naming as kid to show that /proc/self/exe just needs an arg to fork a new proc
+		kid()
+
 	default:
 		panic("run args not provided")
 
@@ -23,13 +26,28 @@ func main() {
 func run() {
 	fmt.Printf("Running %v as PID %d in the host\n", os.Args[2:], os.Getpid())
 
-	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	// cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd := exec.Command("/proc/self/exe", append([]string{"kid"}, os.Args[2:]...)...) // /proc/self/exe is a fork exec
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	//isoltion starts  run as root  GOOS=Linux UTS=UnixTimeSharingSystem(hostname)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID}
+	err := cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func kid() {
+	fmt.Printf("Running %v as PID %d in the Continer\n", os.Args[2:], os.Getpid())
+
+	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	//No need to create ns since it's done already
 	err := cmd.Run()
 	if err != nil {
 		panic(err)
