@@ -34,10 +34,8 @@ func run() {
 	//isoltion starts  run as root  GOOS=Linux UTS=UnixTimeSharingSystem(hostname)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID}
-	err := cmd.Run()
-	if err != nil {
-		panic(err)
-	}
+
+	must(cmd.Run())
 }
 
 func kid() {
@@ -48,7 +46,16 @@ func kid() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	//No need to create ns since it's done already
-	err := cmd.Run()
+
+	//chroot & mount proc
+	must(syscall.Chroot("/root/ubuntu"))
+	must(syscall.Chdir("/"))
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
+
+	must(cmd.Run())
+}
+
+func must(err error) {
 	if err != nil {
 		panic(err)
 	}
