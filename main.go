@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"syscall"
 )
 
+// `go run main.go` run echo "hello from container"
 //`go run main.go` run /bin/bash
 func main() {
 	switch os.Args[1] {
@@ -19,12 +21,15 @@ func main() {
 }
 
 func run() {
-	fmt.Printf("%v\n", os.Args[2:])
+	fmt.Printf("Running %v as PID %d in the host\n", os.Args[2:], os.Getpid())
 
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	//isoltion starts  run as root  GOOS=Linux UTS=UnixTimeSharingSystem(hostname)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID}
 	err := cmd.Run()
 	if err != nil {
 		panic(err)
