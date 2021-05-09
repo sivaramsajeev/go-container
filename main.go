@@ -31,7 +31,7 @@ func run() {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	//isoltion starts  run as root  GOOS=Linux UTS=UnixTimeSharingSystem(hostname)
+	//isolation starts  run as root  GOOS=Linux UTS=UnixTimeSharingSystem(hostname)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID}
 
